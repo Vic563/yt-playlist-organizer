@@ -112,6 +112,51 @@ def cli(ctx: click.Context, log_level: str, config: Optional[str]):
     is_flag=True,
     help="Show what would be done without making changes",
 )
+@click.option(
+    "--api-concurrency",
+    type=int,
+    default=None,
+    help="Number of concurrent API read operations (default: from config)",
+)
+@click.option(
+    "--api-rps", 
+    type=int,
+    default=None,
+    help="API requests per second limit (default: from config)",
+)
+@click.option(
+    "--batch-size",
+    type=int,
+    default=None,
+    help="Batch size for API operations (default: from config)",
+)
+@click.option(
+    "--llm-concurrency",
+    type=int, 
+    default=None,
+    help="Number of concurrent LLM classification requests (default: from config)",
+)
+@click.option(
+    "--cache-dir",
+    type=str,
+    default=None,
+    help="Directory for caching (default: from config)",
+)
+@click.option(
+    "--no-cache",
+    is_flag=True,
+    help="Disable classification and membership caching",
+)
+@click.option(
+    "--no-state", 
+    is_flag=True,
+    help="Disable state tracking of processed videos",
+)
+@click.option(
+    "--no-rich",
+    is_flag=True,
+    help="Disable rich console output for better performance",
+)
 @click.pass_obj
 def organize(
     settings: Settings,
@@ -121,68 +166,109 @@ def organize(
     source_playlist: Optional[str],
     delay: float,
     dry_run: bool,
+    api_concurrency: Optional[int],
+    api_rps: Optional[int],
+    batch_size: Optional[int],
+    llm_concurrency: Optional[int],
+    cache_dir: Optional[str],
+    no_cache: bool,
+    no_state: bool,
+    no_rich: bool,
 ):
     """
-    Organize videos into topic-based playlists using AI.
+    Organize videos into topic-based playlists using AI with performance optimizations.
     
-    This command uses Gemini AI to classify videos by topic and
-    automatically create or update playlists for each topic.
+    This command uses Gemini AI to classify videos by topic and automatically
+    create or update playlists for each topic. The enhanced version includes:
+    
+    - Batched API operations for faster processing
+    - Concurrent classification and API calls  
+    - Caching to avoid redundant work
+    - State tracking to resume interrupted runs
+    - Dry-run mode to preview changes
     """
     try:
+        # Apply CLI overrides to settings
+        if api_concurrency is not None:
+            settings.api_concurrency = api_concurrency
+        if api_rps is not None:
+            settings.api_rps = api_rps
+        if batch_size is not None:
+            settings.batch_size = batch_size
+        if llm_concurrency is not None:
+            settings.llm_concurrency = llm_concurrency
+        if cache_dir is not None:
+            settings.cache_dir = cache_dir
+        if no_cache:
+            settings.enable_cache = False
+        if no_state:
+            settings.enable_state = False
+        if delay > 0:
+            settings.api_delay_seconds = delay
+            
+        # Configure rich output
+        if no_rich:
+            import os
+            os.environ["NO_RICH"] = "1"
+        
         # Check for Gemini API
         if not settings.has_gemini_api:
             print_error("GEMINI_API_KEY not configured. Cannot use AI classification.")
             print_info("Get your API key from: https://makersuite.google.com/app/apikey")
             sys.exit(1)
         
-        # Initialize clients
-        auth_manager = AuthManager(settings)
-        youtube = YouTubeClient(auth_manager, settings)
-        gemini = GeminiClient(settings)
+        print_info(f"Performance settings: concurrency={settings.api_concurrency}, "
+                  f"rps={settings.api_rps}, batch_size={settings.batch_size}, "
+                  f"cache={'enabled' if settings.enable_cache else 'disabled'}, "
+                  f"state={'enabled' if settings.enable_state else 'disabled'}")
         
-        # Test connections
-        print_info("Testing API connections...")
-        if not auth_manager.test_authentication():
-            print_error("YouTube authentication failed")
-            sys.exit(1)
+        # Initialize optimized organizer
+        from yt_organizer.organizers.plan_apply_organizer import PlanAndApplyOrganizer
         
-        if not gemini.test_connection():
-            print_error("Gemini API connection failed")
-            sys.exit(1)
+        organizer = PlanAndApplyOrganizer(settings=settings)
         
-        print_success("API connections successful")
+        # Get source playlist ID
+        if source_playlist:
+            # Parse playlist ID from URL if needed
+            from yt_organizer.core.utils import extract_playlist_id
+            source_id = extract_playlist_id(source_playlist) or source_playlist
+        else:
+            # Use Watch Later
+            source_id = organizer.youtube_client.get_watch_later_playlist_id()
+            print_info(f"Using Watch Later playlist: {source_id}")
         
-        # Import and run the organizer
-        from yt_organizer.organizers.topic_classifier import TopicOrganizer
+        print_success("Starting optimized organization...")
         
-        organizer = TopicOrganizer(
-            youtube_client=youtube,
-            gemini_client=gemini,
-            settings=settings,
-        )
-        
-        stats = organizer.organize_videos(
-            source_playlist=source_playlist,
+        # Run the optimized organize workflow
+        results = organizer.organize_videos(
+            source_playlist_id=source_id,
             limit=limit,
-            privacy=PrivacyStatus(privacy),
             topic_source=TopicSource(topic_source),
-            delay_seconds=delay,
-            dry_run=dry_run,
+            privacy=PrivacyStatus(privacy),
+            dry_run=dry_run
         )
         
-        # Print statistics
-        from yt_organizer.core.logging import print_stats_table
+        # Print results
+        if dry_run:
+            print_success("Dry run completed - no changes made")
+        else:
+            print_success(f"Organization completed!")
+            print_info(f"Created {results['playlists_created']} playlists")
+            print_info(f"Added {results['videos_added']} videos")
+            
+            if results['errors']:
+                print_warning(f"Encountered {len(results['errors'])} errors:")
+                for error in results['errors'][:5]:  # Show first 5 errors
+                    print_error(f"  {error}")
         
-        print_stats_table({
-            "Total Videos": stats.total_videos,
-            "Processed": stats.videos_processed,
-            "Skipped": stats.videos_skipped,
-            "Failed": stats.videos_failed,
-            "Playlists Created": stats.playlists_created,
-            "Playlists Used": stats.playlists_used,
-            "Unique Topics": len(stats.topics_found),
-            "Duration (seconds)": f"{stats.duration_seconds:.1f}",
-        })
+        # Show performance metrics
+        metrics = organizer.youtube_client.get_performance_metrics()
+        print_info(f"Performance: {metrics['videos_per_sec']:.1f} videos/sec, "
+                  f"{metrics['api_calls_per_sec']:.1f} API calls/sec, "
+                  f"{metrics['cache_hit_rate']:.1%} cache hit rate")
+        
+        # Cleanup
+        organizer.cleanup()
         
     except YTOrganizerError as e:
         print_error(f"Error: {e}")

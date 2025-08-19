@@ -44,6 +44,15 @@ class Settings(BaseSettings):
     # Rate limiting
     api_delay_seconds: float = Field(0.0, env="API_DELAY_SECONDS")
     
+    # Performance optimization settings
+    api_concurrency: int = Field(6, env="API_CONCURRENCY") 
+    api_rps: int = Field(8, env="API_RPS")
+    batch_size: int = Field(50, env="BATCH_SIZE")
+    llm_concurrency: int = Field(8, env="LLM_CONCURRENCY")
+    cache_dir: str = Field(".cache/ytpo", env="CACHE_DIR")
+    enable_state: bool = Field(True, env="ENABLE_STATE")
+    enable_cache: bool = Field(True, env="ENABLE_CACHE")
+    
     @field_validator("default_playlist_privacy")
     @classmethod
     def validate_privacy(cls, v: str) -> str:

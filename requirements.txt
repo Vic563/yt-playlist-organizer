@@ -14,5 +14,8 @@ pydantic-settings==2.1.0
 click==8.1.7
 rich==13.7.0
 
+# Performance optimizations
+backoff==2.2.1
+
 # Browser automation (optional)
 playwright==1.46.0

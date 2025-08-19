@@ -14,6 +14,72 @@ A powerful tool to organize your YouTube Watch Later videos into topic-based pla
 - 📊 **Progress Tracking**: Resume interrupted operations with built-in progress tracking
 - 🎨 **Beautiful CLI**: Rich terminal interface with progress bars and formatted output
 
+## ⚡ Prioritize Speed 
+
+The organizer includes advanced performance optimizations for processing large video collections efficiently:
+
+### Performance Features
+
+- **Batched API Operations**: Groups API calls to reduce total requests (up to 50 videos per request)
+- **Concurrent Processing**: Configurable parallel API reads and LLM classification
+- **Smart Caching**: Persistent caching of classification results and playlist membership
+- **State Tracking**: Resumes interrupted operations without reprocessing videos
+- **Rate Limiting**: Adaptive rate limiting with exponential backoff to avoid quota issues
+- **Field Optimization**: Requests only needed fields to reduce payload size
+
+### Performance Flags
+
+```bash
+# Optimize for speed with higher concurrency
+yt-organizer organize --api-concurrency 10 --llm-concurrency 12 --api-rps 15
+
+# Dry run to see performance estimates
+yt-organizer organize --dry-run --limit 500
+
+# Disable caching for fresh results
+yt-organizer organize --no-cache --no-state
+
+# Process with custom cache directory
+yt-organizer organize --cache-dir /tmp/ytpo-cache
+
+# Minimal console output for better performance
+yt-organizer organize --no-rich
+```
+
+### Environment Variables
+
+Set in your `.env` file for persistent configuration:
+
+```env
+API_CONCURRENCY=6          # Concurrent API operations (default: 6)
+API_RPS=8                  # Requests per second limit (default: 8)  
+LLM_CONCURRENCY=8          # Concurrent LLM requests (default: 8)
+BATCH_SIZE=50              # API batch size (default: 50, max: 50)
+CACHE_DIR=.cache/ytpo     # Cache directory (default: .cache/ytpo)
+ENABLE_CACHE=true         # Enable caching (default: true)
+ENABLE_STATE=true         # Enable state tracking (default: true)
+```
+
+### Performance Tips
+
+1. **Start with dry-run**: Use `--dry-run` to see estimates before processing large collections
+2. **Tune concurrency**: Higher values = faster processing but more API quota usage
+3. **Use caching**: Keep caching enabled to avoid re-classifying the same videos
+4. **State tracking**: Enables resuming interrupted large operations
+5. **Monitor output**: Watch for backoff events and cache hit rates in logs
+
+### Example Performance Comparison
+
+```bash
+# Standard processing (~2-3 videos/sec)
+yt-organizer organize --limit 100
+
+# Optimized processing (~8-10 videos/sec)  
+yt-organizer organize --limit 100 --api-concurrency 12 --llm-concurrency 16 --api-rps 20
+```
+
+Performance improvements are most noticeable with collections of 50+ videos.
+
 ## 🚀 Quick Start
 
 ### Prerequisites
