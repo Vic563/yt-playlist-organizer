@@ -38,3 +38,10 @@ playwright/.cache/
 # Local browser/user data (do not commit)
 .yt-user-data/
 
+# Performance optimization cache
+.cache/
+*.log
+
+# Demo and test files
+demo_performance.py
+

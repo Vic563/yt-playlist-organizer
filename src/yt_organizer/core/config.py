@@ -85,6 +85,11 @@ class Settings(BaseSettings):
     
     @property
     def has_gemini_api(self) -> bool:
+        """Check if Gemini API key is configured."""
+        return bool(self.gemini_api_key and self.gemini_api_key.strip())
+    
+    @property
+    def has_gemini_api(self) -> bool:
         """Check if Gemini API is configured."""
         return bool(self.gemini_api_key)
     
