@@ -1,0 +1,6 @@
+2025/08/14-12:15:19.994 8803 Reusing MANIFEST /Users/DT232381/code_stuff/yt-playlist-organizer/.yt-user-data/Default/IndexedDB/https_www.youtube.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/08/14-12:15:20.000 8803 Recovering log #24
+2025/08/14-12:15:20.003 8803 Reusing old log /Users/DT232381/code_stuff/yt-playlist-organizer/.yt-user-data/Default/IndexedDB/https_www.youtube.com_0.indexeddb.leveldb/000024.log 
+2025/08/14-12:19:01.009 8803 Level-0 table #30: started
+2025/08/14-12:19:01.020 8803 Level-0 table #30: 1003433 bytes OK
+2025/08/14-12:19:01.029 8803 Delete type=0 #24

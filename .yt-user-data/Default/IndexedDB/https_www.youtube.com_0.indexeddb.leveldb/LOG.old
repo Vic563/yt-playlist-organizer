@@ -1,0 +1,9 @@
+2025/08/14-11:56:13.099 8203 Reusing MANIFEST /Users/DT232381/code_stuff/yt-playlist-organizer/.yt-user-data/Default/IndexedDB/https_www.youtube.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/08/14-11:56:13.101 8203 Recovering log #24
+2025/08/14-11:56:13.103 8203 Reusing old log /Users/DT232381/code_stuff/yt-playlist-organizer/.yt-user-data/Default/IndexedDB/https_www.youtube.com_0.indexeddb.leveldb/000024.log 
+2025/08/14-11:56:13.720 8503 Compacting 1@1 + 1@2 files
+2025/08/14-11:56:13.740 8503 Generated table #27@1: 400 keys, 65835 bytes
+2025/08/14-11:56:13.740 8503 Compacted 1@1 + 1@2 files => 65835 bytes
+2025/08/14-11:56:13.748 8503 compacted to: files[ 0 0 1 0 0 0 0 ]
+2025/08/14-11:56:13.748 8503 Delete type=2 #22
+2025/08/14-11:56:13.749 8503 Delete type=2 #25
