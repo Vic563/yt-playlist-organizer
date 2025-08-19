@@ -91,6 +91,121 @@ yt-organizer list-playlists
 yt-organizer list-videos WL --limit 10
 ```
 
+### Command reference
+
+#### Global options
+- `--log-level` [DEBUG|INFO|WARNING|ERROR]: Set logging level (default: INFO)
+- `--config PATH`: Path to a .env file to load before running
+- `--version`: Show version
+
+#### Accepted playlist formats
+- Playlist ID: `PLxxxxxxxx...`
+- Playlist URL: `https://www.youtube.com/playlist?list=PL...`
+- Special ID: `WL` (Watch Later)
+- Playlist Name: For UI automation and some lookups
+
+---
+
+### organize — AI topic classification to playlists
+Flags:
+- `--limit` INT: Max videos to process (default: 100)
+- `--privacy` [private|unlisted|public]: Privacy for created playlists (default: private)
+- `--topic-source` [title|description|title+description]: Source for classification (default: title+description)
+- `--source-playlist` STR: Use specific playlist instead of Watch Later
+- `--delay` FLOAT: Delay between API calls in seconds (default: 0.0)
+- `--dry-run`: Preview actions without making changes
+
+Examples:
+```bash
+yt-organizer organize --limit 100 --privacy private
+yt-organizer organize --source-playlist PLxxxx --limit 50 --delay 0.3
+yt-organizer organize --topic-source title --dry-run
+```
+
+---
+
+### copy — Copy videos from one playlist to another
+Flags:
+- `--target` STR (required): Target playlist (ID/URL/name)
+- `--source` STR: Source playlist (default: Watch Later)
+- `--limit` INT: Max videos to copy (default: 100)
+- `--delay` FLOAT: Delay between API calls (default: 0.0)
+
+Examples:
+```bash
+yt-organizer copy --target "My Playlist"
+yt-organizer copy --source PLsource --target PLtarget --limit 25 --delay 0.2
+```
+
+---
+
+### move-browser — Move using browser automation (Playwright)
+Flags:
+- `--target` STR (required): Target playlist (ID/URL/name in Save dialog)
+- `--max` INT: Max videos to process (default: 50)
+- `--headless`: Run headless browser
+- `--clear-progress`: Clear saved progress
+
+Examples:
+```bash
+yt-organizer move-browser --target "My Playlist" --max 40
+yt-organizer move-browser --target PLxxxx --headless
+```
+
+Notes:
+- First run creates a persistent profile at ./.yt-user-data
+- Install Playwright: `pip install playwright && playwright install chromium`
+
+---
+
+### list-playlists — Show your playlists
+No flags.
+
+```bash
+yt-organizer list-playlists
+```
+
+---
+
+### list-videos — Show videos in a playlist
+Args:
+- PLAYLIST_ID: ID/URL or `WL`
+
+Flags:
+- `--limit` INT: Max videos to show (default: 10)
+
+```bash
+yt-organizer list-videos WL --limit 20
+```
+
+---
+
+### auth — Authenticate with YouTube API
+Runs OAuth flow and stores credentials in token.json
+
+```bash
+yt-organizer auth
+```
+
+---
+
+### revoke — Revoke stored OAuth credentials
+Flags:
+- `--confirm`: Skip confirmation prompt
+
+```bash
+yt-organizer revoke --confirm
+```
+
+---
+
+## Environment variables
+- `GEMINI_API_KEY`: Required for AI classification
+- `GOOGLE_CLIENT_SECRETS_FILE`: Path to OAuth client JSON (default: client_secret.json)
+- `DEFAULT_PLAYLIST_PRIVACY`: Default privacy for created playlists (private|unlisted|public)
+- `API_DELAY_SECONDS`: Default API call delay (seconds)
+- `BROWSER_HEADLESS`: Default headless mode for automation (true/false)
+
 ## 🏗️ Architecture
 
 ```

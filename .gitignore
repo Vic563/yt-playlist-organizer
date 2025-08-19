@@ -35,3 +35,6 @@ token.json
 # Playwright cache
 playwright/.cache/
 
+# Local browser/user data (do not commit)
+.yt-user-data/
+
